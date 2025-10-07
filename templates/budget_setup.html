@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Budget Splitter Setup</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 font-sans">
+    <div class="max-w-md mx-auto mt-16 p-6 bg-white rounded-lg shadow">
+        <h1 class="text-2xl font-bold mb-4 text-blue-700">Budget Splitter Setup</h1>
+        <p class="text-gray-600 mb-4">How many people are on this trip?</p>
+        <input id="memberCount" type="number" min="1" class="w-full p-2 border rounded mb-4" placeholder="e.g., 3"/>
+        <div id="memberNamesContainer" class="space-y-2 mb-4"></div>
+        <button onclick="saveAndNext()" class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700">Next: Add Expenses</button>
+    </div>
+    <script>
+        const memberCountInput = document.getElementById('memberCount');
+        const namesContainer = document.getElementById('memberNamesContainer');
+        memberCountInput.addEventListener('input', () => {
+            const count = parseInt(memberCountInput.value) || 0;
+            namesContainer.innerHTML = '';
+            for (let i = 0; i < count; i++) {
+                namesContainer.innerHTML += `<input type="text" class="w-full p-2 border rounded member-name" placeholder="Name of Person ${i + 1}" required>`;
+            }
+        });
+
+        function saveAndNext() {
+            const nameInputs = document.querySelectorAll('.member-name');
+            const memberNames = Array.from(nameInputs).map(input => input.value.trim()).filter(name => name);
+            if (nameInputs.length > 0 && memberNames.length === nameInputs.length) {
+                localStorage.setItem('memberNames', JSON.stringify(memberNames));
+                localStorage.removeItem('expenseData');
+                window.location.href = '/budget-expenses';
+            } else {
+                alert('Please enter a name for each person.');
+            }
+        }
+    </script>
+</body>
+</html>

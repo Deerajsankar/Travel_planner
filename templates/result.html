@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Your Results for {{ destination }}{% endblock %}
+{% block content %}
+<h1 class="text-center">Your Trip to {{ destination }}</h1>
+
+<h2 class="mt-4">Hotels</h2>
+<div class="grid-container">
+    {% for hotel in hotels %}
+    <div class="card">
+        <h3>{{ hotel.hotel_name }}</h3>
+        <p><strong>Rating:</strong> {{ hotel.star_rating }} ★</p>
+        <p><strong>Price:</strong> ₹{{ hotel.price_per_night_inr }}/night</p>
+    </div>
+    {% else %}
+    <p>No hotels found for your criteria.</p>
+    {% endfor %}
+</div>
+
+<h2 class="mt-4">Flights</h2>
+<div class="grid-container">
+    {% for flight in flights %}
+    <div class="card">
+        <h3>{{ flight.airline }} ({{ flight.flight_id }})</h3>
+        <p><strong>From:</strong> {{ flight.origin }}</p>
+        <p><strong>Price:</strong> ₹{{ flight.price_inr }}</p>
+    </div>
+    {% else %}
+    <p>No flights found for this destination.</p>
+    {% endfor %}
+</div>
+
+<h2 class="mt-4">Trains</h2>
+<div class="grid-container">
+    {% for train in trains %}
+    <div class="card">
+        <h3>{{ train.train_name }}</h3>
+        <p><strong>From:</strong> {{ train.origin }}</p>
+        <p><strong>Price (AC):</strong> ₹{{ train.price_2a_inr }}</p>
+    </div>
+    {% else %}
+    <p>No trains found for this destination.</p>
+    {% endfor %}
+</div>
+{% endblock %}

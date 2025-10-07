@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Plan Your Trip to India{% endblock %}
+{% block content %}
+<section class="hero-section text-center">
+    <div class="hero-content">
+        <h1>Your Perfect Indian Itinerary Awaits</h1>
+        <p>Plan your next adventure with curated suggestions for flights, hotels, and local attractions, all in one place.</p>
+        <div class="hero-buttons">
+            <a href="{{ url_for('planner') }}" class="btn btn-primary">Plan Your Trip</a>
+            <a href="{{ url_for('login') }}" class="btn btn-secondary">Login</a>
+        </div>
+    </div>
+</section>
+
+<section class="features-section mt-4">
+    <h2 class="text-center">Why Choose Journease?</h2>
+    <div class="grid-container">
+        <div class="card text-center">
+            <h3>Personalized Recommendations</h3>
+            <p>Get a tailored itinerary based on your budget and destination.</p>
+        </div>
+        <div class="card text-center">
+            <h3>India-Centric</h3>
+            <p>All our data and suggestions are focused on Indian destinations.</p>
+        </div>
+        <div class="card text-center">
+            <h3>Effortless Planning</h3>
+            <p>Our simple form makes planning your trip a breeze.</p>
+        </div>
+    </div>
+</section>
+{% endblock %}
+{% block head %}
+<style>
+    .hero-section {
+        padding: 60px 20px;
+        background-color: var(--card-background);
+        border-radius: 12px;
+    }
+    .btn-secondary { background-color: transparent; color: var(--primary-color); border: 2px solid var(--primary-color); }
+    .btn-secondary:hover { background-color: var(--primary-color); color: white; }
+    .hero-buttons .btn { margin: 0 0.5rem; }
+</style>
+{% endblock %}

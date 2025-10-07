@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Expense Dashboard</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+    <style> /* Basic styles to avoid FOUC */ body{font-family: sans-serif;} </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-4 md:p-8 max-w-4xl">
+        <header class="mb-8 flex justify-between items-center">
+            <h1 class="text-3xl font-bold text-blue-700">Expense Tracker</h1>
+            <a href="/budget-setup" class="text-sm font-medium text-blue-600 hover:underline">Back to Setup</a>
+        </header>
+        <div id="expensesContainer" class="space-y-6"></div>
+        <div class="mt-8 flex justify-center space-x-4">
+            <button onclick="addExpenseCard()" class="bg-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-blue-700 transition-colors flex items-center space-x-2">
+                <span class="material-icons">add_circle</span>
+                <span>Add Expense</span>
+            </button>
+            <button onclick="calculateAndShowSettlement()" class="bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-green-700 transition-colors flex items-center space-x-2">
+                <span class="material-icons">calculate</span>
+                <span>Settle Up</span>
+            </button>
+        </div>
+        <div id="settlementResult" class="mt-8 bg-white p-6 rounded-lg shadow-md border border-gray-200 hidden">
+            <h2 class="text-2xl font-semibold mb-4 text-center">How to Settle Up</h2>
+            <div id="transactions" class="space-y-2"></div>
+        </div>
+    </div>
+    <script>
+        // --- DATA MANAGEMENT ---
+        const members = JSON.parse(localStorage.getItem('memberNames') || '[]');
+        let expenses = JSON.parse(localStorage.getItem('expenseData') || '[]');
+
+        function saveExpenses() {
+            localStorage.setItem('expenseData', JSON.stringify(expenses));
+        }
+
+        // --- UI RENDERING ---
+        function renderExpenses() {
+            const container = document.getElementById('expensesContainer');
+            container.innerHTML = '';
+            expenses.forEach((exp, index) => container.appendChild(createExpenseCard(exp, index)));
+        }
+
+        function createExpenseCard(expense, index) {
+            const card = document.createElement('div');
+            card.className = "bg-white p-6 rounded-lg shadow-md border border-gray-200";
+            card.dataset.index = index;
+
+            const memberOptions = members.map(m => `<option value="${m}" ${m === expense.paidBy ? 'selected' : ''}>${m}</option>`).join('');
+            
+            card.innerHTML = `
+                <div class="flex justify-between items-start mb-4">
+                    <input class="text-xl font-semibold border-0 p-0 focus:ring-0" type="text" value="${expense.name}" oninput="updateExpense(${index}, 'name', this.value)" placeholder="Expense Name ${index + 1}" />
+                    <button onclick="deleteExpense(${index})" class="text-gray-400 hover:text-red-500"><span class="material-icons">delete</span></button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600">Paid by</label>
+                        <select class="mt-1 block w-full border-gray-300 rounded p-2" onchange="updateExpense(${index}, 'paidBy', this.value)">${memberOptions}</select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600">Amount</label>
+                        <div class="relative mt-1">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">₹</span>
+                            <input class="pl-7 block w-full border-gray-300 rounded p-2" type="number" value="${expense.amount}" oninput="updateExpense(${index}, 'amount', parseFloat(this.value) || 0)"/>
+                        </div>
+                    </div>
+                </div>`;
+            return card;
+        }
+
+        // --- EVENT HANDLERS & LOGIC ---
+        function addExpenseCard() {
+            expenses.push({
+                name: '',
+                amount: 0,
+                paidBy: members[0] || '',
+            });
+            saveExpenses();
+            renderExpenses();
+        }
+
+        function deleteExpense(index) {
+            expenses.splice(index, 1);
+            saveExpenses();
+            renderExpenses();
+        }
+
+        function updateExpense(index, key, value) {
+            expenses[index][key] = value;
+            saveExpenses();
+        }
+
+        function calculateAndShowSettlement() {
+            const balances = members.reduce((acc, member) => ({ ...acc, [member]: 0 }), {});
+
+            expenses.forEach(expense => {
+                const totalAmount = expense.amount;
+                const payer = expense.paidBy;
+                if (balances[payer] !== undefined) balances[payer] += totalAmount;
+
+                const share = members.length > 0 ? totalAmount / members.length : 0;
+                members.forEach(member => {
+                    if (balances[member] !== undefined) balances[member] -= share;
+                });
+            });
+
+            const creditors = [];
+            const debtors = [];
+            Object.keys(balances).forEach(p => {
+                if (balances[p] > 0) creditors.push({ person: p, amount: balances[p] });
+                if (balances[p] < 0) debtors.push({ person: p, amount: -balances[p] });
+            });
+
+            const transactions = [];
+            while (debtors.length > 0 && creditors.length > 0) {
+                const debtor = debtors[0];
+                const creditor = creditors[0];
+                const amount = Math.min(debtor.amount, creditor.amount);
+
+                if (amount > 0.01) {
+                    transactions.push(`${debtor.person} pays ₹${amount.toFixed(2)} to ${creditor.person}`);
+                }
+                debtor.amount -= amount;
+                creditor.amount -= amount;
+
+                if (debtor.amount < 0.01) debtors.shift();
+                if (creditor.amount < 0.01) creditors.shift();
+            }
+
+            const transactionsDiv = document.getElementById('transactions');
+            transactionsDiv.innerHTML = transactions.length > 0 ?
+                transactions.map(t => `<p class="text-center text-lg">${t}</p>`).join('') :
+                '<p class="text-center text-lg">All settled up!</p>';
+            
+            document.getElementById('settlementResult').classList.remove('hidden');
+        }
+
+        // --- INITIAL LOAD ---
+        document.addEventListener('DOMContentLoaded', () => {
+            if (members.length === 0) {
+                document.body.innerHTML = '<div class="text-center mt-16"><p>No members found. Please set up your trip first.</p><a href="/budget-setup" class="text-blue-600 hover:underline">Go to Setup</a></div>';
+                return;
+            }
+            if (expenses.length === 0) {
+                addExpenseCard();
+            } else {
+                renderExpenses();
+            }
+        });
+    </script>
+</body>
+</html>

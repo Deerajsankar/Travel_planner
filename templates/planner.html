@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Plan Trip{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/form.css') }}">
+{% endblock %}
+{% block content %}
+<div class="card form-card">
+    <h1 class="text-center">Plan Your Trip</h1>
+    <p class="text-center">Let's find the best options for you.</p>
+    
+    <form id="planner-form" action="{{ url_for('results') }}" method="get">
+        <div class="form-group">
+            <label for="destination">Destination</label>
+            <select id="destination" name="destination" required>
+                <option value="">Select a City</option>
+                <option value="Delhi">Delhi</option>
+                <option value="Mumbai">Mumbai</option>
+                <option value="Goa">Goa</option>
+                <option value="Jaipur">Jaipur</option>
+                <option value="Kochi">Kochi</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="budget">Budget (in ₹)</label>
+            <input type="number" id="budget" name="budget" placeholder="e.g., 50000" min="0" required>
+        </div>
+        <button type="submit" id="submit-btn" class="btn btn-primary btn-block">Find Suggestions</button>
+    </form>
+</div>
+{% endblock %}
